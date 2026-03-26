@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GID — Gestion des Incidents & Demandes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f8fafc;--white:#fff;--slate-50:#f8fafc;--slate-100:#f1f5f9;--slate-200:#e2e8f0;--slate-300:#cbd5e1;
+  --slate-400:#94a3b8;--slate-500:#64748b;--slate-600:#475569;--slate-700:#334155;--slate-800:#1e293b;--slate-900:#0f172a;
+  --indigo:#6366f1;--indigo-dark:#4f46e5;--indigo-light:#eef2ff;--indigo-border:#c7d2fe;
+  --cyan:#0891b2;--cyan-light:#ecfeff;--amber:#f59e0b;--amber-light:#fffbeb;
+  --green:#10b981;--green-light:#ecfdf5;--red:#ef4444;--red-light:#fef2f2;
+  --orange:#f97316;--orange-light:#fff7ed;--yellow:#eab308;--yellow-light:#fefce8;
+  --violet:#8b5cf6;--violet-light:#f5f3ff;--gray:#6b7280;--gray-light:#f3f4f6;
+  --sidebar-bg:#0f172a;--font:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:14px;--radius-sm:10px;--radius-xs:8px;--radius-badge:6px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.04);--shadow-btn:0 2px 8px rgba(99,102,241,0.3);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--slate-900);display:flex;min-height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:250px;min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-brand{padding:28px 24px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--indigo),#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;font-family:var(--mono)}
+.sidebar-title{color:#f1f5f9;font-size:17px;font-weight:800;letter-spacing:-0.02em}
+.sidebar-sub{color:var(--slate-500);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
+.sidebar-nav{flex:1;padding:16px 12px}
+.nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;margin-bottom:3px;border-radius:var(--radius-sm);border:none;cursor:pointer;background:transparent;color:var(--slate-400);font-size:13.5px;font-weight:500;font-family:var(--font);text-align:left;transition:all .15s}
+.nav-btn:hover{background:rgba(99,102,241,0.08);color:#a5b4fc}
+.nav-btn.active{background:rgba(99,102,241,0.15);color:#a5b4fc;font-weight:700}
+.nav-icon{font-size:16px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px}
+.sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px}
+.sidebar-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),#ec4899);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.sidebar-username{color:#e2e8f0;font-size:12.5px;font-weight:600}
+.sidebar-role{color:var(--slate-500);font-size:10.5px}
+
+/* ── Main Layout ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:var(--white);border-bottom:1px solid #e5e7eb}
+.role-switcher{display:flex;gap:8px}
+.role-btn{padding:6px 14px;border-radius:var(--radius-xs);border:1.5px solid #e5e7eb;background:var(--white);color:var(--slate-400);font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.role-btn.active{border-color:var(--indigo);background:var(--indigo-light);color:var(--indigo-dark)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.notif-bell{position:relative;cursor:pointer;font-size:18px}
+.notif-count{position:absolute;top:-4px;right:-6px;width:16px;height:16px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.topbar-time{font-size:12px;color:var(--slate-500);font-weight:500}
+.content{flex:1;padding:32px;overflow-y:auto}
+
+/* ── Badge ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--radius-badge);font-size:11px;font-weight:700;letter-spacing:0.02em;white-space:nowrap}
+
+/* ── Cards ── */
+.card{background:var(--white);border-radius:var(--radius);padding:24px;border:1px solid #e5e7eb}
+.card-title{font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:16px}
+
+/* ── Stat Cards ── */
+.stats-row{display:flex;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:22px 24px;border:1px solid #e5e7eb;flex:1;min-width:180}
+.stat-label{font-size:11px;font-weight:600;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.stat-value{font-size:30px;font-weight:800;color:var(--slate-900);letter-spacing:-0.03em}
+.stat-sub{font-size:11.5px;color:var(--slate-400);margin-top:4px}
+.stat-top{display:flex;justify-content:space-between;align-items:flex-start}
+.stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+
+/* ── SLA Bar ── */
+.sla-bar-wrap{display:flex;align-items:center;gap:8px}
+.sla-track{flex:1;height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden}
+.sla-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.sla-pct{font-size:11px;font-weight:700;min-width:32px;text-align:right}
+
+/* ── Grid ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* ── Progress Bars ── */
+.domain-bar{margin-bottom:12px}
+.domain-bar-header{display:flex;justify-content:space-between;margin-bottom:4px}
+.domain-bar-label{font-size:12.5px;font-weight:600;color:var(--slate-700)}
+.domain-bar-count{font-size:12px;font-weight:700}
+.bar-track{height:8px;border-radius:4px;background:var(--slate-100);overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s}
+
+/* ── Priority row ── */
+.priority-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.priority-row .bar-track{flex:1}
+
+/* ── Alert rows ── */
+.alert-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid;margin-bottom:8px}
+.alert-row .ticket-ref{font-size:11px;font-weight:700;color:var(--slate-500);font-family:var(--mono)}
+.alert-row .ticket-title{font-size:13px;font-weight:600;color:var(--slate-900);flex:1}
+
+/* ── Page Header ── */
+.page-header{margin-bottom:28px}
+.page-header h1{font-size:26px;font-weight:800;color:var(--slate-900);letter-spacing:-0.03em}
+.page-header p{color:var(--slate-500);font-size:13.5px;margin-top:4px;font-weight:500}
+.page-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+
+/* ── Buttons ── */
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--indigo),var(--indigo-dark));color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-btn);font-family:var(--font)}
+.btn-secondary{padding:10px 20px;border-radius:var(--radius-sm);border:1px solid var(--slate-200);background:var(--white);color:var(--slate-600);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn-success{padding:10px 16px;border-radius:var(--radius-sm);border:none;background:var(--green);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;width:100%}
+.btn-warn{padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--slate-200);background:var(--white);color:var(--amber);font-size:12.5px;font-weight:700;cursor:pointer;width:100%}
+.btn-ghost{padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--slate-200);background:var(--white);color:var(--slate-600);font-size:12.5px;font-weight:600;cursor:pointer;width:100%}
+.btn-back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--indigo);font-size:13px;font-weight:600;cursor:pointer;padding:0;font-family:var(--font);margin-bottom:20px}
+.btn-small{padding:8px 16px;border-radius:var(--radius-xs);border:1px solid var(--slate-200);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)}
+
+/* ── Filters ── */
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.filters input,.filters select{padding:9px 14px;border-radius:var(--radius-xs);border:1px solid var(--slate-200);font-size:13px;font-family:var(--font);outline:none;background:var(--white)}
+.filters input{width:260px}
+
+/* ── Table ── */
+.ticket-table{width:100%;border-collapse:collapse;font-size:13px}
+.ticket-table thead{background:var(--slate-50);border-bottom:1px solid #e5e7eb}
+.ticket-table th{padding:12px 14px;text-align:left;font-weight:700;color:var(--slate-600);font-size:11px;text-transform:uppercase;letter-spacing:0.05em}
+.ticket-table td{padding:14px}
+.ticket-table tbody tr{border-bottom:1px solid var(--slate-100);cursor:pointer;transition:background .1s}
+.ticket-table tbody tr:hover{background:var(--slate-50)}
+.ticket-ref-cell{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--indigo)}
+.ticket-title-cell{font-weight:600;color:var(--slate-900);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket-traitant{color:var(--slate-500);font-size:12.5px}
+.ticket-date{color:var(--slate-400);font-size:12px}
+
+/* ── Kanban ── */
+.kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px}
+.kanban-col{min-width:260px;max-width:280px;flex:0 0 auto}
+.kanban-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 4px}
+.kanban-dot{width:10px;height:10px;border-radius:50%}
+.kanban-label{font-size:13px;font-weight:700;color:var(--slate-700)}
+.kanban-count{font-size:11px;font-weight:700;color:var(--slate-400);background:var(--slate-100);padding:2px 8px;border-radius:8px}
+.kanban-card{background:var(--white);border-radius:12px;padding:16px;border:1px solid #e5e7eb;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);margin-bottom:10px}
+.kanban-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.kanban-card-top{display:flex;justify-content:space-between;margin-bottom:8px}
+.kanban-card-ref{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--indigo)}
+.kanban-card-title{font-size:12.5px;font-weight:600;color:var(--slate-900);margin-bottom:10px;line-height:1.4}
+.kanban-card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.kanban-empty{padding:24px;text-align:center;color:var(--slate-300);font-size:12px;border-radius:12px;border:2px dashed #e5e7eb}
+
+/* ── Form ── */
+.form-card{background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid #e5e7eb;max-width:720px}
+.form-group{margin-bottom:22px}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--slate-700);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border-radius:var(--radius-xs);border:1px solid var(--slate-200);font-size:13.5px;font-family:var(--font);outline:none}
+.form-textarea{height:100px;resize:vertical;font-size:13px}
+.form-select{background:var(--white);cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.type-buttons{display:flex;gap:10px}
+.type-btn{flex:1;padding:12px 16px;border-radius:var(--radius-sm);border:2px solid #e5e7eb;background:var(--white);color:var(--slate-500);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.type-btn.active{border-color:var(--indigo);background:var(--indigo-light);color:var(--indigo-dark)}
+.domain-fields{padding:16px;border-radius:var(--radius-sm);margin-bottom:22px}
+.domain-fields-title{font-size:12px;font-weight:700;margin-bottom:12px}
+.domain-fields .form-row{gap:12px}
+.domain-fields input,.domain-fields select{padding:9px 12px;border-radius:6px;border:1px solid var(--slate-200);font-size:12.5px;font-family:var(--font);width:100%}
+.upload-zone{padding:24px;border-radius:var(--radius-sm);border:2px dashed var(--slate-200);text-align:center;cursor:pointer;transition:all .15s}
+.upload-zone:hover{border-color:var(--indigo);background:var(--indigo-light)}
+.upload-icon{font-size:24px;margin-bottom:6px}
+.upload-text{font-size:12.5px;color:var(--slate-500);font-weight:500}
+.upload-hint{font-size:11px;color:var(--slate-400);margin-top:4px}
+.suggestion-box{padding:16px;border-radius:var(--radius-sm);background:var(--indigo-light);border:1px solid var(--indigo-border);margin-bottom:22px}
+
+/* ── Detail ── */
+.detail-layout{display:flex;gap:24px}
+.detail-main{flex:1}
+.detail-sidebar{width:280px;flex-shrink:0}
+.detail-header-badges{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.detail-title{font-size:22px;font-weight:800;color:var(--slate-900);margin-bottom:12px;letter-spacing:-0.02em}
+.detail-desc{font-size:14px;color:var(--slate-600);line-height:1.7}
+.detail-info{background:var(--white);border-radius:var(--radius);padding:22px;border:1px solid #e5e7eb;margin-bottom:16px}
+.detail-info h4{font-size:12px;font-weight:700;color:var(--slate-500);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.06em}
+.detail-info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--slate-100)}
+.detail-info-label{font-size:12px;color:var(--slate-400);font-weight:500}
+.detail-info-value{font-size:12px;color:var(--slate-900);font-weight:600;text-align:right;max-width:160px}
+.detail-actions{display:flex;flex-direction:column;gap:8px}
+.comment-area{width:100%;height:80px;padding:12px;border-radius:var(--radius-xs);border:1px solid var(--slate-200);font-size:13px;resize:vertical;font-family:var(--font);outline:none}
+.comment-buttons{display:flex;gap:10px;margin-top:12px}
+.comment-btn{padding:9px 18px;border-radius:var(--radius-xs);font-size:12.5px;font-weight:700;cursor:pointer;font-family:var(--font)}
+
+/* ── Timeline ── */
+.timeline-item{display:flex;gap:16px;padding-bottom:16px;position:relative}
+.timeline-line{position:absolute;left:11px;top:24px;bottom:0;width:2px;background:#e5e7eb}
+.timeline-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;z-index:1}
+.timeline-action{font-size:13px;font-weight:600;color:var(--slate-900)}
+.timeline-meta{font-size:11.5px;color:var(--slate-400);margin-top:2px}
+
+/* ── KB ── */
+.kb-search{width:100%;max-width:480px;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--slate-200);font-size:14px;margin-bottom:24px;font-family:var(--font);outline:none}
+.kb-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kb-card{background:var(--white);border-radius:12px;padding:20px;border:1px solid #e5e7eb;cursor:pointer;transition:all .15s}
+.kb-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+.kb-card-top{display:flex;justify-content:space-between;margin-bottom:10px}
+.kb-card-title{font-size:14px;font-weight:700;color:var(--slate-900);margin-bottom:10px;line-height:1.4}
+.kb-card-votes{font-size:11.5px;color:var(--green);font-weight:600}
+
+/* ── KPI ── */
+.kpi-card{background:var(--white);border-radius:var(--radius);padding:22px;border:1px solid #e5e7eb}
+.kpi-label{font-size:11px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.kpi-value{font-size:28px;font-weight:800;color:var(--slate-900)}
+.kpi-status{font-size:11.5px;font-weight:600;margin-top:4px}
+
+/* ── Chart ── */
+.chart-area{display:flex;align-items:flex-end;gap:20px;height:160px;padding:0 20px}
+.chart-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bars{display:flex;gap:4px;align-items:flex-end;height:130px}
+.chart-bar{width:24px;border-radius:4px 4px 0 0}
+.chart-label{font-size:12px;font-weight:600;color:var(--slate-500)}
+.chart-legend{display:flex;gap:20px;justify-content:center;margin-top:16px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--slate-500);font-weight:500}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+
+/* ── Admin ── */
+.admin-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.admin-tag{padding:4px 10px;border-radius:6px;background:var(--slate-100);font-size:11.5px;color:var(--slate-600);font-weight:500}
+.admin-tag-add{padding:4px 10px;border-radius:6px;background:var(--indigo-light);font-size:11.5px;color:var(--indigo);font-weight:600;cursor:pointer}
+.admin-user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--slate-100)}
+.admin-user-name{font-size:13px;font-weight:600;color:var(--slate-900)}
+.admin-user-role{font-size:11px;color:var(--slate-400)}
+.admin-dot{width:8px;height:8px;border-radius:50%}
+.audit-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--slate-100)}
+.audit-action{font-size:12.5px;font-weight:600;color:var(--slate-700)}
+.audit-user{font-size:11px;color:var(--slate-400)}
+.audit-time{font-size:11px;color:var(--slate-400);font-weight:500}
+
+.sla-table{width:100%;font-size:12px;border-collapse:collapse}
+.sla-table th{padding:8px 6px;text-align:left;font-weight:700;color:var(--slate-500);font-size:10.5px;text-transform:uppercase;border-bottom:1px solid #e5e7eb}
+.sla-table td{padding:10px 6px;border-bottom:1px solid var(--slate-100);color:var(--slate-600);font-weight:600}
+
+.hidden{display:none!important}
+
+/* ── Login Screen ── */
+.login-screen{position:fixed;inset:0;z-index:9999;background:#0f172a;display:flex;align-items:center;justify-content:center;overflow:auto}
+.login-bg{position:absolute;inset:0;overflow:hidden}
+.login-bg::before{content:'';position:absolute;top:-30%;right:-20%;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%)}
+.login-bg::after{content:'';position:absolute;bottom:-20%;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.1),transparent 70%)}
+.login-container{position:relative;z-index:1;width:100%;max-width:460px;padding:20px}
+.login-card{background:rgba(30,41,59,0.8);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:48px 40px;box-shadow:0 24px 80px rgba(0,0,0,0.4)}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:12px}
+.login-logo-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;font-family:var(--mono)}
+.login-logo-text{font-size:28px;font-weight:800;color:#f1f5f9;letter-spacing:-0.03em}
+.login-subtitle{text-align:center;color:#64748b;font-size:13px;font-weight:500;margin-bottom:36px}
+.login-field{margin-bottom:20px}
+.login-label{display:block;font-size:11.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.login-input{width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.6);color:#f1f5f9;font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s}
+.login-input:focus{border-color:#6366f1}
+.login-input::placeholder{color:#475569}
+.login-submit{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(99,102,241,0.35)}
+.login-submit:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(99,102,241,0.45)}
+.login-submit:active{transform:translateY(0)}
+.login-error{color:#ef4444;font-size:12.5px;font-weight:600;text-align:center;margin-top:14px;min-height:18px}
+.login-accounts{margin-top:28px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.06)}
+.login-accounts-title{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;text-align:center}
+.login-account-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.login-account-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(15,23,42,0.5);cursor:pointer;transition:all .15s;text-align:left}
+.login-account-btn:hover{background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3)}
+.login-account-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+.login-account-name{font-size:12px;font-weight:600;color:#e2e8f0}
+.login-account-role{font-size:10px;color:#64748b;font-weight:500}
+.login-password-toggle{position:relative}
+.login-password-toggle .toggle-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;padding:0}
+
+/* ── Topbar logout ── */
+.topbar-user-info{display:flex;align-items:center;gap:12px}
+.topbar-user-name{font-size:12.5px;font-weight:600;color:var(--slate-700)}
+.topbar-user-badge{font-size:10.5px;font-weight:600;color:var(--indigo);background:var(--indigo-light);padding:3px 10px;border-radius:6px}
+.btn-logout{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-xs);border:1px solid var(--slate-200);background:var(--white);color:var(--red);font-size:11.5px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-logout:hover{background:var(--red-light);border-color:#fecaca}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN SCREEN ═══════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-bg"></div>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">G</div>
+        <div class="login-logo-text">GID</div>
+      </div>
+      <div class="login-subtitle">Gestion des Incidents & Demandes — DSI</div>
+
+      <div class="login-field">
+        <label class="login-label">Identifiant</label>
+        <input class="login-input" id="loginUser" type="text" placeholder="nom.prenom" autocomplete="off">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Mot de passe</label>
+        <div class="login-password-toggle">
+          <input class="login-input" id="loginPass" type="password" placeholder="••••••••">
+          <button class="toggle-eye" id="toggleEye" type="button">👁</button>
+        </div>
+      </div>
+
+      <button class="login-submit" id="loginBtn">Se connecter</button>
+      <div class="login-error" id="loginError"></div>
+
+      <div class="login-accounts">
+        <div class="login-accounts-title">Comptes de démonstration</div>
+        <div class="login-account-grid" id="demoAccounts"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ APP (hidden until login) ═══════ -->
+<div id="appShell" style="display:none;width:100%;display:none">
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">G</div>
+    <div><div class="sidebar-title">GID</div><div class="sidebar-sub">Gestion Incidents & Demandes</div></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-user">
+    <div class="sidebar-avatar" id="sidebarAvatarEl">E</div>
+    <div><div class="sidebar-username" id="sidebarUsernameEl">Ethan</div><div class="sidebar-role" id="sidebarRoleText">Technicien N1</div></div>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-user-info" id="topbarUserInfo"></div>
+    <div class="topbar-right">
+      <div class="notif-bell">🔔<div class="notif-count">3</div></div>
+      <span class="topbar-time">26/03/2026 10:32</span>
+      <button class="btn-logout" onclick="logout()">⏻ Déconnexion</button>
+    </div>
+  </header>
+  <main class="content" id="content"></main>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const ROLES = ["Utilisateur","Technicien N1","Superviseur","Admin"];
+const STATUSES = {
+  nouveau:{label:"Nouveau",color:"#6366f1",bg:"#eef2ff"},
+  assigne:{label:"Assigné",color:"#0891b2",bg:"#ecfeff"},
+  en_cours:{label:"En cours",color:"#f59e0b",bg:"#fffbeb"},
+  en_attente:{label:"En attente",color:"#8b5cf6",bg:"#f5f3ff"},
+  resolu:{label:"Résolu",color:"#10b981",bg:"#ecfdf5"},
+  cloture:{label:"Clôturé",color:"#6b7280",bg:"#f3f4f6"}
+};
+const PRIORITIES = {
+  P1:{label:"P1 — Critique",color:"#ef4444",bg:"#fef2f2",sla:"1h"},
+  P2:{label:"P2 — Haute",color:"#f97316",bg:"#fff7ed",sla:"4h"},
+  P3:{label:"P3 — Moyenne",color:"#eab308",bg:"#fefce8",sla:"8h"},
+  P4:{label:"P4 — Faible",color:"#22c55e",bg:"#f0fdf4",sla:"3j"}
+};
+const DOMAINS = {
+  applicatif:{label:"Applicatif",icon:"💻",color:"#8b5cf6"},
+  reseau:{label:"Réseau",icon:"🌐",color:"#0891b2"},
+  systeme:{label:"Système",icon:"🖥️",color:"#f59e0b"}
+};
+const TICKETS = [
+  {id:"INC-2026-0147",titre:"ERP inaccessible — erreur 503",type:"incident",domaine:"applicatif",priorite:"P1",statut:"en_cours",demandeur:"Marie Dupont",traitant:"Étudiant A",date:"26/03/2026 08:12",sla_pct:72,app:"ERP — SAP",impact:"Critique",desc:"L'application ERP renvoie une erreur 503 depuis ce matin. Aucun utilisateur du service comptabilité ne peut accéder au module facturation.",commentaires:4},
+  {id:"INC-2026-0146",titre:"VPN déconnexion aléatoire site Lyon",type:"incident",domaine:"reseau",priorite:"P2",statut:"assigne",demandeur:"Jean Martin",traitant:"Étudiant B",date:"25/03/2026 16:45",sla_pct:35,app:"VPN — FortiClient",impact:"Élevé",desc:"Déconnexions VPN récurrentes pour les utilisateurs du site de Lyon. Affecte environ 30 personnes.",commentaires:2},
+  {id:"INC-2026-0145",titre:"VM prod-web-03 — CPU à 98%",type:"incident",domaine:"systeme",priorite:"P1",statut:"en_cours",demandeur:"Alain Roche",traitant:"Étudiant A",date:"25/03/2026 14:20",sla_pct:88,app:"Serveur prod-web-03",impact:"Critique",desc:"Le serveur virtuel prod-web-03 affiche une charge CPU constante à 98%. Les services web hébergés sont extrêmement lents.",commentaires:7},
+  {id:"DEM-2026-0089",titre:"Aide configuration Outlook mobile",type:"assistance",domaine:"applicatif",priorite:"P4",statut:"nouveau",demandeur:"Sophie Lemaire",traitant:null,date:"26/03/2026 09:30",sla_pct:10,app:"Outlook — O365",impact:"Faible",desc:"Besoin d'aide pour configurer la messagerie Outlook sur un nouveau téléphone professionnel.",commentaires:0},
+  {id:"RFC-2026-0012",titre:"Évolution — Ajout module RH dans ERP",type:"evolution",domaine:"applicatif",priorite:"P3",statut:"en_attente",demandeur:"Pierre Moreau",traitant:"Étudiant B",date:"20/03/2026 10:00",sla_pct:45,app:"ERP — SAP",impact:"Moyen",desc:"Demande d'ajout d'un module de gestion des congés dans l'ERP pour le service RH.",commentaires:5},
+  {id:"INC-2026-0144",titre:"Switch SRV-SW-02 — ports désactivés",type:"incident",domaine:"reseau",priorite:"P2",statut:"resolu",demandeur:"Claire Fontaine",traitant:"Étudiant A",date:"24/03/2026 11:00",sla_pct:100,app:"Switch Cisco 3850",impact:"Élevé",desc:"Plusieurs ports du switch SRV-SW-02 en salle serveur sont passés en état err-disabled.",commentaires:3},
+  {id:"DEM-2026-0088",titre:"Demande accès VPN télétravail",type:"assistance",domaine:"reseau",priorite:"P4",statut:"cloture",demandeur:"Lucie Bernard",traitant:"Étudiant B",date:"22/03/2026 09:15",sla_pct:100,app:"VPN — FortiClient",impact:"Faible",desc:"Demande de création d'un accès VPN pour le télétravail.",commentaires:2},
+  {id:"INC-2026-0143",titre:"Serveur backup — échec sauvegarde nocturne",type:"incident",domaine:"systeme",priorite:"P2",statut:"en_cours",demandeur:"Thomas Girard",traitant:"Étudiant A",date:"25/03/2026 07:00",sla_pct:60,app:"Serveur bkp-srv-01",impact:"Élevé",desc:"La sauvegarde nocturne du 24/03 a échoué avec l'erreur 'insufficient disk space'.",commentaires:4}
+];
+const KB_ARTICLES = [
+  {id:1,titre:"Résoudre l'erreur 503 sur l'ERP",domaine:"applicatif",votes:24,date:"15/02/2026"},
+  {id:2,titre:"Procédure de reconnexion VPN",domaine:"reseau",votes:42,date:"10/01/2026"},
+  {id:3,titre:"Libérer de l'espace disque serveur",domaine:"systeme",votes:18,date:"28/02/2026"},
+  {id:4,titre:"Configuration Outlook mobile iOS/Android",domaine:"applicatif",votes:35,date:"05/03/2026"},
+  {id:5,titre:"Reset ports err-disabled switch Cisco",domaine:"reseau",votes:12,date:"20/03/2026"}
+];
+
+// ═══════════════════════════════════════
+// USER ACCOUNTS
+// ═══════════════════════════════════════
+const USERS = [
+  { id:"mdupont", login:"marie.dupont", password:"user123", nom:"Marie Dupont", initiale:"MD", role:"Utilisateur", service:"Comptabilité", gradient:"linear-gradient(135deg,#f59e0b,#ef4444)" },
+  { id:"etudA", login:"etudiant.a", password:"tech123", nom:"Étudiant A (Ethan)", initiale:"EA", role:"Technicien N1", service:"Support DSI — SLAM", gradient:"linear-gradient(135deg,#6366f1,#ec4899)" },
+  { id:"etudB", login:"etudiant.b", password:"tech123", nom:"Étudiant B (Jules)", initiale:"EB", role:"Technicien N1", service:"Support DSI — SISR", gradient:"linear-gradient(135deg,#06b6d4,#6366f1)" },
+  { id:"jsuper", login:"jean.superviseur", password:"super123", nom:"Jean Coordinateur", initiale:"JC", role:"Superviseur", service:"Coordination DSI", gradient:"linear-gradient(135deg,#10b981,#06b6d4)" },
+  { id:"admin", login:"admin", password:"admin123", nom:"Admin Système", initiale:"AS", role:"Admin", service:"Administration DSI", gradient:"linear-gradient(135deg,#8b5cf6,#ec4899)" }
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let loggedInUser = null;
+let currentRole = "Technicien N1";
+let currentPage = "dashboard";
+let selectedTicket = null;
+let formState = { type:"incident", domaine:"" };
+let filterState = { status:"all", domain:"all", search:"" };
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function badge(text,color,bg){ return `<span class="badge" style="color:${color};background:${bg}">${text}</span>`; }
+function slaBar(pct,priorite){
+  const c = pct>85?"#ef4444":pct>60?"#f59e0b":"#10b981";
+  return `<div class="sla-bar-wrap"><div class="sla-track"><div class="sla-fill" style="width:${Math.min(pct,100)}%;background:${c}"></div></div><span class="sla-pct" style="color:${c}">${pct}%</span></div>`;
+}
+function esc(s){ return s ? s.replace(/</g,"&lt;").replace(/>/g,"&gt;") : ""; }
+
+// ═══════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════
+const NAV_CONFIG = {
+  "Utilisateur":[
+    {id:"dashboard",label:"Tableau de bord",icon:"◩"},
+    {id:"creer",label:"Nouveau ticket",icon:"＋"},
+    {id:"tickets",label:"Mes tickets",icon:"☰"},
+    {id:"kb",label:"Base de connaissances",icon:"📖"}
+  ],
+  "Technicien N1":[
+    {id:"dashboard",label:"Tableau de bord",icon:"◩"},
+    {id:"file",label:"File d'attente",icon:"☰"},
+    {id:"kanban",label:"Vue Kanban",icon:"▦"},
+    {id:"creer",label:"Nouveau ticket",icon:"＋"},
+    {id:"kb",label:"Base de connaissances",icon:"📖"}
+  ],
+  "Superviseur":[
+    {id:"dashboard",label:"Tableau de bord",icon:"◩"},
+    {id:"file",label:"Tous les tickets",icon:"☰"},
+    {id:"kanban",label:"Vue Kanban",icon:"▦"},
+    {id:"reporting",label:"Reporting",icon:"📊"},
+    {id:"kb",label:"Base de connaissances",icon:"📖"}
+  ],
+  "Admin":[
+    {id:"dashboard",label:"Tableau de bord",icon:"◩"},
+    {id:"file",label:"Tous les tickets",icon:"☰"},
+    {id:"reporting",label:"Reporting",icon:"📊"},
+    {id:"admin",label:"Administration",icon:"⚙"},
+    {id:"kb",label:"Base de connaissances",icon:"📖"}
+  ]
+};
+
+function buildSidebar(){
+  const nav = NAV_CONFIG[currentRole] || [];
+  const openCount = TICKETS.filter(t=>t.statut!=="cloture").length;
+  document.getElementById("sidebarNav").innerHTML = nav.map(n=>{
+    const active = currentPage===n.id||(currentPage==="detail"&&(n.id==="file"||n.id==="tickets"));
+    const badgeHTML = n.id==="file"||n.id==="tickets" ? `<span class="nav-badge">${openCount}</span>` : "";
+    return `<button class="nav-btn${active?" active":""}" onclick="navigate('${n.id}')"><span class="nav-icon">${n.icon}</span>${n.label}${badgeHTML}</button>`;
+  }).join("");
+  document.getElementById("sidebarRoleText").textContent = currentRole;
+  if(loggedInUser){
+    document.getElementById("sidebarUsernameEl").textContent = loggedInUser.nom.split("(")[0].trim();
+    document.getElementById("sidebarAvatarEl").textContent = loggedInUser.initiale;
+    document.getElementById("sidebarAvatarEl").style.background = loggedInUser.gradient;
+  }
+}
+
+function buildTopbarUser(){
+  if(!loggedInUser) return;
+  document.getElementById("topbarUserInfo").innerHTML = `
+    <span class="topbar-user-name">${esc(loggedInUser.nom)}</span>
+    <span class="topbar-user-badge">${esc(loggedInUser.role)}</span>
+    <span style="font-size:11px;color:var(--slate-400);font-weight:500">${esc(loggedInUser.service)}</span>`;
+}
+
+function navigate(p){ currentPage=p; render(); }
+function openTicket(id){ selectedTicket=TICKETS.find(t=>t.id===id); currentPage="detail"; render(); }
+function render(){ buildSidebar(); buildTopbarUser(); renderPage(); }
+
+// ═══════════════════════════════════════
+// LOGIN / LOGOUT
+// ═══════════════════════════════════════
+function attemptLogin(login, password){
+  const user = USERS.find(u => u.login === login.trim().toLowerCase() && u.password === password);
+  if(!user){
+    document.getElementById("loginError").textContent = "Identifiant ou mot de passe incorrect.";
+    document.getElementById("loginPass").value = "";
+    return;
+  }
+  loggedInUser = user;
+  currentRole = user.role;
+  currentPage = "dashboard";
+  document.getElementById("loginScreen").style.display = "none";
+  const shell = document.getElementById("appShell");
+  shell.style.display = "flex";
+  shell.style.width = "100%";
+  shell.style.minHeight = "100vh";
+  render();
+}
+
+function quickLogin(userId){
+  const user = USERS.find(u => u.id === userId);
+  if(user){
+    document.getElementById("loginUser").value = user.login;
+    document.getElementById("loginPass").value = user.password;
+    attemptLogin(user.login, user.password);
+  }
+}
+
+function logout(){
+  loggedInUser = null;
+  currentPage = "dashboard";
+  selectedTicket = null;
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("loginUser").value = "";
+  document.getElementById("loginPass").value = "";
+  document.getElementById("loginError").textContent = "";
+}
+
+function initLogin(){
+  // Demo account buttons
+  const grid = document.getElementById("demoAccounts");
+  grid.innerHTML = USERS.filter(u=>u.id!=="etudB").map(u=>`
+    <button class="login-account-btn" onclick="quickLogin('${u.id}')">
+      <div class="login-account-avatar" style="background:${u.gradient}">${u.initiale}</div>
+      <div><div class="login-account-name">${u.nom.split("(")[0].trim()}</div><div class="login-account-role">${u.role} · ${u.login}</div></div>
+    </button>`).join("");
+
+  // Login form events
+  document.getElementById("loginBtn").addEventListener("click",()=>{
+    attemptLogin(document.getElementById("loginUser").value, document.getElementById("loginPass").value);
+  });
+  document.getElementById("loginPass").addEventListener("keydown",e=>{
+    if(e.key==="Enter") attemptLogin(document.getElementById("loginUser").value, document.getElementById("loginPass").value);
+  });
+  document.getElementById("loginUser").addEventListener("keydown",e=>{
+    if(e.key==="Enter") document.getElementById("loginPass").focus();
+  });
+  document.getElementById("toggleEye").addEventListener("click",()=>{
+    const p = document.getElementById("loginPass");
+    p.type = p.type==="password"?"text":"password";
+    document.getElementById("toggleEye").textContent = p.type==="password"?"👁":"🙈";
+  });
+  // Clear error on typing
+  document.getElementById("loginUser").addEventListener("input",()=>{ document.getElementById("loginError").textContent=""; });
+  document.getElementById("loginPass").addEventListener("input",()=>{ document.getElementById("loginError").textContent=""; });
+}
+
+// ═══════════════════════════════════════
+// PAGE ROUTER
+// ═══════════════════════════════════════
+function renderPage(){
+  const c = document.getElementById("content");
+  switch(currentPage){
+    case "dashboard": c.innerHTML = pageDashboard(); break;
+    case "tickets": case "file": c.innerHTML = pageTicketList(); bindListEvents(); break;
+    case "detail": c.innerHTML = pageDetail(); break;
+    case "kanban": c.innerHTML = pageKanban(); break;
+    case "creer": c.innerHTML = pageCreate(); bindCreateEvents(); break;
+    case "kb": c.innerHTML = pageKB(); bindKBEvents(); break;
+    case "reporting": c.innerHTML = pageReporting(); break;
+    case "admin": c.innerHTML = pageAdmin(); break;
+    default: c.innerHTML = pageDashboard();
+  }
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function pageDashboard(){
+  const open = TICKETS.filter(t=>!["cloture","resolu"].includes(t.statut));
+  const slaRisk = TICKETS.filter(t=>t.sla_pct>75&&t.statut!=="cloture");
+  const critical = TICKETS.filter(t=>t.priorite==="P1"&&t.statut!=="cloture");
+
+  let domainBars = "";
+  for(const [key,d] of Object.entries(DOMAINS)){
+    const count = TICKETS.filter(t=>t.domaine===key&&t.statut!=="cloture").length;
+    const total = TICKETS.filter(t=>t.statut!=="cloture").length;
+    const pct = total ? Math.round(count/total*100) : 0;
+    domainBars += `<div class="domain-bar"><div class="domain-bar-header"><span class="domain-bar-label">${d.icon} ${d.label}</span><span class="domain-bar-count" style="color:${d.color}">${count} tickets (${pct}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${d.color}"></div></div></div>`;
+  }
+
+  let prioRows = "";
+  for(const [key,p] of Object.entries(PRIORITIES)){
+    const count = TICKETS.filter(t=>t.priorite===key&&t.statut!=="cloture").length;
+    prioRows += `<div class="priority-row">${badge(p.label,p.color,p.bg)}<div class="bar-track" style="flex:1"><div class="bar-fill" style="width:${count*15}%;background:${p.color}"></div></div><span style="font-size:13px;font-weight:700;color:#334155;min-width:16px">${count}</span></div>`;
+  }
+
+  let alertRows = "";
+  critical.forEach(t=>{
+    const bgc = t.sla_pct>80?"#fef2f2":"#fffbeb";
+    const bdc = t.sla_pct>80?"#fecaca":"#fde68a";
+    alertRows += `<div class="alert-row" style="background:${bgc};border-color:${bdc};cursor:pointer" onclick="openTicket('${t.id}')"><span class="ticket-ref">${t.id}</span><span class="ticket-title">${esc(t.titre)}</span>${badge(PRIORITIES[t.priorite].label,PRIORITIES[t.priorite].color,PRIORITIES[t.priorite].bg)}<div style="width:120px">${slaBar(t.sla_pct,t.priorite)}</div></div>`;
+  });
+
+  return `
+    <div class="page-header"><h1>Tableau de bord</h1><p>26 mars 2026 — Bienvenue, ${loggedInUser?esc(loggedInUser.nom.split("(")[0].trim()):"—"} (${currentRole.toLowerCase()})</p></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tickets ouverts</div><div class="stat-value">${open.length}</div><div class="stat-sub">dont 2 P1 critiques</div></div><div class="stat-icon" style="background:rgba(99,102,241,0.1)">🎫</div></div></div>
+      <div class="stat-card"><div class="stat-top"><div><div class="stat-label">SLA à risque</div><div class="stat-value">${slaRisk.length}</div><div class="stat-sub">&gt; 75% du délai consommé</div></div><div class="stat-icon" style="background:rgba(239,68,68,0.1)">⏱</div></div></div>
+      <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Résolus ce mois</div><div class="stat-value">23</div><div class="stat-sub">↑ 12% vs février</div></div><div class="stat-icon" style="background:rgba(16,185,129,0.1)">✓</div></div></div>
+      <div class="stat-card"><div class="stat-top"><div><div class="stat-label">MTTR moyen</div><div class="stat-value">4.2h</div><div class="stat-sub">Objectif : &lt; 4h</div></div><div class="stat-icon" style="background:rgba(245,158,11,0.1)">⚡</div></div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:24px">
+      <div class="card"><div class="card-title">Répartition par domaine</div>${domainBars}</div>
+      <div class="card"><div class="card-title">Répartition par priorité</div>${prioRows}</div>
+    </div>
+    <div class="card"><div class="card-title">Tickets critiques & SLA à risque</div>${alertRows}</div>`;
+}
+
+// ═══════════════════════════════════════
+// TICKET LIST
+// ═══════════════════════════════════════
+function getFilteredTickets(){
+  return TICKETS.filter(t=>{
+    if(filterState.status!=="all"&&t.statut!==filterState.status) return false;
+    if(filterState.domain!=="all"&&t.domaine!==filterState.domain) return false;
+    if(filterState.search&&!t.titre.toLowerCase().includes(filterState.search.toLowerCase())&&!t.id.toLowerCase().includes(filterState.search.toLowerCase())) return false;
+    return true;
+  });
+}
+
+function pageTicketList(){
+  const filtered = getFilteredTickets();
+  let statusOpts = `<option value="all">Tous les statuts</option>`;
+  for(const [k,v] of Object.entries(STATUSES)) statusOpts += `<option value="${k}"${filterState.status===k?" selected":""}>${v.label}</option>`;
+  let domOpts = `<option value="all">Tous les domaines</option>`;
+  for(const [k,v] of Object.entries(DOMAINS)) domOpts += `<option value="${k}"${filterState.domain===k?" selected":""}>${v.label}</option>`;
+
+  let rows = "";
+  filtered.forEach(t=>{
+    const d = DOMAINS[t.domaine];
+    rows += `<tr onclick="openTicket('${t.id}')">
+      <td class="ticket-ref-cell">${t.id}</td>
+      <td class="ticket-title-cell">${esc(t.titre)}</td>
+      <td><span style="font-size:12px;color:${d.color};font-weight:600">${d.icon} ${d.label}</span></td>
+      <td>${badge(t.priorite,PRIORITIES[t.priorite].color,PRIORITIES[t.priorite].bg)}</td>
+      <td>${badge(STATUSES[t.statut].label,STATUSES[t.statut].color,STATUSES[t.statut].bg)}</td>
+      <td style="width:130px">${slaBar(t.sla_pct,t.priorite)}</td>
+      <td class="ticket-traitant">${t.traitant||"—"}</td>
+      <td class="ticket-date">${t.date.split(" ")[0]}</td>
+    </tr>`;
+  });
+
+  return `
+    <div class="page-header-row">
+      <div><h1 style="font-size:26px;font-weight:800;color:#0f172a;letter-spacing:-0.03em">${currentRole==="Utilisateur"?"Mes tickets":"File d'attente"}</h1><p style="color:#64748b;font-size:13px;margin-top:4px;font-weight:500">${filtered.length} ticket${filtered.length>1?"s":""}</p></div>
+      <button class="btn-primary" onclick="navigate('creer')">＋ Nouveau ticket</button>
+    </div>
+    <div class="filters">
+      <input id="searchInput" value="${esc(filterState.search)}" placeholder="Rechercher un ticket…">
+      <select id="statusFilter">${statusOpts}</select>
+      <select id="domainFilter">${domOpts}</select>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="ticket-table"><thead><tr>
+        <th>Réf.</th><th>Titre</th><th>Domaine</th><th>Priorité</th><th>Statut</th><th>SLA</th><th>Traitant</th><th>Date</th>
+      </tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+function bindListEvents(){
+  const si = document.getElementById("searchInput");
+  const sf = document.getElementById("statusFilter");
+  const df = document.getElementById("domainFilter");
+  if(si) si.addEventListener("input",e=>{filterState.search=e.target.value;renderPage();});
+  if(sf) sf.addEventListener("change",e=>{filterState.status=e.target.value;renderPage();});
+  if(df) df.addEventListener("change",e=>{filterState.domain=e.target.value;renderPage();});
+}
+
+// ═══════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════
+function pageDetail(){
+  if(!selectedTicket) return "";
+  const t = selectedTicket;
+  const s = STATUSES[t.statut];
+  const p = PRIORITIES[t.priorite];
+  const d = DOMAINS[t.domaine];
+
+  const timeline = [
+    {time:t.date,action:"Ticket créé",user:t.demandeur,type:"create"},
+    ...(t.traitant?[{time:"25/03/2026 09:00",action:`Assigné à ${t.traitant}`,user:"Système",type:"assign"}]:[]),
+    ...(t.statut==="en_cours"?[{time:"25/03/2026 09:15",action:"Prise en charge — diagnostic en cours",user:t.traitant,type:"progress"}]:[]),
+    ...(t.commentaires>2?[{time:"25/03/2026 14:30",action:"Commentaire interne ajouté",user:t.traitant,type:"comment"}]:[])
+  ];
+
+  const colors = {create:"#6366f1",assign:"#0891b2",progress:"#f59e0b",comment:"#8b5cf6"};
+  const icons = {create:"+",assign:"→",progress:"▶",comment:"💬"};
+
+  let timelineHTML = timeline.map((e,i)=>{
+    const line = i<timeline.length-1?`<div class="timeline-line"></div>`:"";
+    return `<div class="timeline-item">${line}<div class="timeline-dot" style="background:${colors[e.type]}">${icons[e.type]}</div><div><div class="timeline-action">${esc(e.action)}</div><div class="timeline-meta">${esc(e.user)} • ${e.time}</div></div></div>`;
+  }).join("");
+
+  const infoRows = [
+    ["Demandeur",t.demandeur],["Traitant",t.traitant||"Non assigné"],["Application",t.app],
+    ["Impact",t.impact],["Créé le",t.date],["SLA résolution",p.sla]
+  ].map(([l,v])=>`<div class="detail-info-row"><span class="detail-info-label">${l}</span><span class="detail-info-value">${esc(v)}</span></div>`).join("");
+
+  const backTarget = currentRole==="Utilisateur"?"tickets":"file";
+
+  return `
+    <button class="btn-back" onclick="navigate('${backTarget}')">← Retour à la liste</button>
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="card" style="padding:28px;margin-bottom:20px">
+          <div class="detail-header-badges">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--indigo);background:var(--indigo-light);padding:4px 10px;border-radius:6px">${t.id}</span>
+            ${badge(s.label,s.color,s.bg)} ${badge(p.label,p.color,p.bg)}
+            <span style="font-size:12px;color:${d.color};font-weight:600">${d.icon} ${d.label}</span>
+          </div>
+          <h2 class="detail-title">${esc(t.titre)}</h2>
+          <p class="detail-desc">${esc(t.desc)}</p>
+        </div>
+        <div class="card" style="margin-bottom:20px"><div class="card-title">Journal d'activité</div>${timelineHTML}</div>
+        <div class="card">
+          <div class="card-title">Ajouter un commentaire</div>
+          <textarea class="comment-area" placeholder="Écrivez votre commentaire…"></textarea>
+          <div class="comment-buttons">
+            <button class="comment-btn" style="background:var(--indigo);color:#fff;border:none">Commentaire public</button>
+            <button class="comment-btn" style="background:var(--white);color:var(--slate-600);border:1px solid var(--slate-200)">Note interne</button>
+          </div>
+        </div>
+      </div>
+      <div class="detail-sidebar">
+        <div class="detail-info"><h4>Détails</h4>${infoRows}</div>
+        <div class="detail-info"><h4>SLA</h4>${slaBar(t.sla_pct,t.priorite)}<div style="font-size:11px;color:var(--slate-400);margin-top:8px">Délai maximal : ${p.sla}</div></div>
+        <div class="detail-actions">
+          <button class="btn-success">✓ Marquer résolu</button>
+          <button class="btn-warn">↗ Escalader N2/N3</button>
+          <button class="btn-ghost">⏸ Mettre en attente</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// KANBAN
+// ═══════════════════════════════════════
+function pageKanban(){
+  const cols = ["nouveau","assigne","en_cours","en_attente","resolu"];
+  let html = `<div class="page-header"><h1>Vue Kanban</h1></div><div class="kanban">`;
+  cols.forEach(col=>{
+    const st = STATUSES[col];
+    const tickets = TICKETS.filter(t=>t.statut===col);
+    let cards = tickets.map(t=>{
+      const d = DOMAINS[t.domaine];
+      return `<div class="kanban-card" onclick="openTicket('${t.id}')">
+        <div class="kanban-card-top"><span class="kanban-card-ref">${t.id}</span>${badge(t.priorite,PRIORITIES[t.priorite].color,PRIORITIES[t.priorite].bg)}</div>
+        <div class="kanban-card-title">${esc(t.titre)}</div>
+        ${slaBar(t.sla_pct,t.priorite)}
+        <div class="kanban-card-bottom"><span style="font-size:11px;color:${d.color};font-weight:600">${d.icon} ${d.label}</span>${t.traitant?`<span style="font-size:10.5px;color:var(--slate-400)">${esc(t.traitant)}</span>`:""}</div>
+      </div>`;
+    }).join("");
+    if(!tickets.length) cards = `<div class="kanban-empty">Aucun ticket</div>`;
+    html += `<div class="kanban-col"><div class="kanban-header"><div class="kanban-dot" style="background:${st.color}"></div><span class="kanban-label">${st.label}</span><span class="kanban-count">${tickets.length}</span></div>${cards}</div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════
+// CREATE TICKET
+// ═══════════════════════════════════════
+function pageCreate(){
+  const domainFieldsApp = `<div class="domain-fields" id="domainFields" style="background:#f5f3ff;border:1px solid #e9d5ff">
+    <div class="domain-fields-title" style="color:#7c3aed">💻 Champs spécifiques — Applicatif</div>
+    <div class="form-row"><input placeholder="Nom de l'application"><select><option>Environnement…</option><option>Production</option><option>Préprod</option><option>Test</option></select><input placeholder="Version applicative"><input placeholder="Module / Écran concerné"></div></div>`;
+  const domainFieldsNet = `<div class="domain-fields" id="domainFields" style="background:#ecfeff;border:1px solid #a5f3fc">
+    <div class="domain-fields-title" style="color:#0891b2">🌐 Champs spécifiques — Réseau</div>
+    <div class="form-row"><select><option>Type de service…</option><option>Accès internet</option><option>VPN</option><option>WiFi</option><option>DNS/DHCP</option><option>Firewall</option></select><input placeholder="Équipement concerné"><input placeholder="Localisation (site, salle, VLAN)"><input placeholder="Plage IP / Segment"></div></div>`;
+  const domainFieldsSys = `<div class="domain-fields" id="domainFields" style="background:#fffbeb;border:1px solid #fde68a">
+    <div class="domain-fields-title" style="color:#d97706">🖥️ Champs spécifiques — Système</div>
+    <div class="form-row"><input placeholder="Nom du serveur / hostname"><input placeholder="OS et version"><select><option>Type d'infra…</option><option>Physique</option><option>Virtuelle (VMware)</option><option>Virtuelle (Hyper-V)</option></select><select><option>Service…</option><option>OS</option><option>Stockage</option><option>Sauvegarde</option><option>Annuaire</option><option>Sécurité</option></select></div></div>`;
+
+  let domainHTML = "";
+  if(formState.domaine==="applicatif") domainHTML = domainFieldsApp;
+  else if(formState.domaine==="reseau") domainHTML = domainFieldsNet;
+  else if(formState.domaine==="systeme") domainHTML = domainFieldsSys;
+
+  let subOpts = `<option>Sélectionner un domaine d'abord</option>`;
+  if(formState.domaine==="applicatif") subOpts = `<option>Sous-catégorie…</option><option>Bug / Erreur</option><option>Accès / Droits</option><option>Performance</option>`;
+  if(formState.domaine==="reseau") subOpts = `<option>Sous-catégorie…</option><option>Wi-Fi</option><option>VPN</option><option>DNS / DHCP</option><option>Firewall</option>`;
+  if(formState.domaine==="systeme") subOpts = `<option>Sous-catégorie…</option><option>Serveur</option><option>Stockage</option><option>Sauvegarde</option><option>OS</option>`;
+
+  return `
+    <div class="page-header"><h1>Nouveau ticket</h1><p>Remplissez le formulaire pour signaler un problème ou faire une demande.</p></div>
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">Type de demande</label>
+        <div class="type-buttons">
+          <button class="type-btn${formState.type==="incident"?" active":""}" id="typeIncident">🔴 Incident</button>
+          <button class="type-btn${formState.type==="assistance"?" active":""}" id="typeAssistance">🔵 Assistance</button>
+          <button class="type-btn${formState.type==="evolution"?" active":""}" id="typeEvolution">🟢 Évolution (RFC)</button>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Titre / Objet *</label><input class="form-input" placeholder="Décrivez brièvement le problème…"></div>
+      <div class="form-row" style="margin-bottom:22px">
+        <div><label class="form-label">Domaine *</label><select class="form-select" id="domaineSelect"><option value="">Sélectionner…</option><option value="applicatif"${formState.domaine==="applicatif"?" selected":""}>💻 Applicatif</option><option value="reseau"${formState.domaine==="reseau"?" selected":""}>🌐 Réseau</option><option value="systeme"${formState.domaine==="systeme"?" selected":""}>🖥️ Système</option></select></div>
+        <div><label class="form-label">Sous-catégorie</label><select class="form-select">${subOpts}</select></div>
+      </div>
+      <div class="form-row" style="margin-bottom:22px">
+        <div><label class="form-label">Impact *</label><select class="form-select"><option>Sélectionner…</option><option>🔴 Critique</option><option>🟠 Élevé</option><option>🟡 Moyen</option><option>🟢 Faible</option></select></div>
+        <div><label class="form-label">Urgence *</label><select class="form-select"><option>Sélectionner…</option><option>Immédiate</option><option>Haute</option><option>Normale</option><option>Planifiée</option></select></div>
+      </div>
+      ${domainHTML}
+      <div class="form-group"><label class="form-label">Description détaillée *</label><textarea class="form-textarea" placeholder="Décrivez le problème, les étapes de reproduction, les messages d'erreur…"></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Pièces jointes</label>
+        <div class="upload-zone"><div class="upload-icon">📎</div><div class="upload-text">Glisser-déposer ou <span style="color:var(--indigo);font-weight:700">parcourir</span></div><div class="upload-hint">JPG, PNG, PDF, TXT, LOG — 10 Mo max</div></div>
+      </div>
+      <div class="suggestion-box"><div style="font-size:12px;font-weight:700;color:var(--indigo-dark)">📖 Articles suggérés</div><div style="font-size:12.5px;color:var(--slate-500);margin-top:4px">Remplissez le titre et le domaine pour voir les solutions existantes.</div></div>
+      <div style="display:flex;gap:12px">
+        <button class="btn-primary" style="padding:12px 28px;font-size:14px">Soumettre le ticket</button>
+        <button class="btn-secondary" style="padding:12px 28px;font-size:14px" onclick="navigate('dashboard')">Annuler</button>
+      </div>
+    </div>`;
+}
+
+function bindCreateEvents(){
+  document.getElementById("typeIncident")?.addEventListener("click",()=>{formState.type="incident";renderPage();});
+  document.getElementById("typeAssistance")?.addEventListener("click",()=>{formState.type="assistance";renderPage();});
+  document.getElementById("typeEvolution")?.addEventListener("click",()=>{formState.type="evolution";renderPage();});
+  document.getElementById("domaineSelect")?.addEventListener("change",e=>{formState.domaine=e.target.value;renderPage();});
+}
+
+// ═══════════════════════════════════════
+// KB
+// ═══════════════════════════════════════
+let kbSearch = "";
+function pageKB(){
+  const filtered = KB_ARTICLES.filter(a=>!kbSearch||a.titre.toLowerCase().includes(kbSearch.toLowerCase()));
+  let cards = filtered.map(a=>{
+    const d = DOMAINS[a.domaine];
+    return `<div class="kb-card"><div class="kb-card-top"><span style="font-size:12px;color:${d.color};font-weight:600">${d.icon} ${d.label}</span><span style="font-size:11px;color:var(--slate-400)">${a.date}</span></div><div class="kb-card-title">${esc(a.titre)}</div><div class="kb-card-votes">👍 ${a.votes} votes utiles</div></div>`;
+  }).join("");
+
+  return `<div class="page-header"><h1>Base de connaissances</h1><p>Trouvez une solution avant d'ouvrir un ticket.</p></div>
+    <input class="kb-search" id="kbSearchInput" value="${esc(kbSearch)}" placeholder="🔍 Rechercher un article…">
+    <div class="kb-grid">${cards}</div>`;
+}
+function bindKBEvents(){
+  document.getElementById("kbSearchInput")?.addEventListener("input",e=>{kbSearch=e.target.value;renderPage();});
+}
+
+// ═══════════════════════════════════════
+// REPORTING
+// ═══════════════════════════════════════
+function pageReporting(){
+  const kpis = [
+    {label:"MTTR",value:"4h12",target:"< 4h",ok:false},
+    {label:"MTTA",value:"18min",target:"< 15min",ok:false},
+    {label:"Taux SLA",value:"87%",target:"> 90%",ok:false},
+    {label:"Réouverture",value:"4%",target:"< 5%",ok:true},
+    {label:"First-call",value:"62%",target:"> 60%",ok:true},
+    {label:"Satisfaction",value:"4.2/5",target:"> 4.0",ok:true}
+  ];
+  let kpiHTML = kpis.map(k=>`<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-status" style="color:${k.ok?"#10b981":"#f59e0b"}">${k.ok?"✓":"⚠"} Objectif : ${k.target}</div></div>`).join("");
+
+  const months = [{m:"Jan",a:18,n:12,s:8},{m:"Fév",a:22,n:15,s:10},{m:"Mars",a:28,n:18,s:14}];
+  let bars = months.map(m=>`<div class="chart-group"><div class="chart-bars"><div class="chart-bar" style="height:${m.a*2.5}px;background:#8b5cf6"></div><div class="chart-bar" style="height:${m.n*2.5}px;background:#0891b2"></div><div class="chart-bar" style="height:${m.s*2.5}px;background:#f59e0b"></div></div><span class="chart-label">${m.m}</span></div>`).join("");
+
+  let legend = Object.entries(DOMAINS).map(([k,d])=>`<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div>${d.label}</div>`).join("");
+
+  return `<div class="page-header"><h1>Reporting & KPI</h1><p>Indicateurs de performance — Mars 2026</p></div>
+    <div class="grid-3" style="margin-bottom:28px">${kpiHTML}</div>
+    <div class="card" style="margin-bottom:20px"><div class="card-title">Volume mensuel par domaine</div><div class="chart-area">${bars}</div><div class="chart-legend">${legend}</div></div>
+    <div style="display:flex;gap:12px"><button class="btn-secondary">📥 Export CSV</button><button class="btn-secondary">📄 Rapport PDF</button></div>`;
+}
+
+// ═══════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════
+function pageAdmin(){
+  const cats = [
+    {nom:"Applicatif",subs:["Bug / Erreur","Accès / Droits","Performance","Évolution fonctionnelle"]},
+    {nom:"Réseau",subs:["Wi-Fi","VPN","DNS / DHCP","Firewall","VLAN"]},
+    {nom:"Système",subs:["Serveur","Stockage","Sauvegarde","OS","Annuaire"]}
+  ];
+  let catHTML = cats.map(c=>`<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--slate-700);margin-bottom:6px">${c.nom}</div><div class="admin-tags">${c.subs.map(s=>`<span class="admin-tag">${s}</span>`).join("")}<span class="admin-tag-add">+ Ajouter</span></div></div>`).join("");
+
+  const users = [{nom:"Marie Dupont",role:"Utilisateur"},{nom:"Étudiant A",role:"Technicien N1"},{nom:"Étudiant B",role:"Technicien N1"},{nom:"Jean Superviseur",role:"Superviseur"},{nom:"Admin Système",role:"Admin"}];
+  let usersHTML = users.map(u=>`<div class="admin-user-row"><div><div class="admin-user-name">${u.nom}</div><div class="admin-user-role">${u.role}</div></div><div class="admin-dot" style="background:#10b981"></div></div>`).join("");
+
+  const slaRows = Object.entries(PRIORITIES).map(([k,p])=>{
+    const prise = k==="P1"?"15min":k==="P2"?"30min":k==="P3"?"2h":"8h";
+    return `<tr><td>${badge(p.label,p.color,p.bg)}</td><td>${prise}</td><td>${p.sla}</td></tr>`;
+  }).join("");
+
+  const audits = [
+    {action:"Ticket INC-0147 créé",user:"Marie Dupont",time:"08:12"},
+    {action:"Ticket INC-0145 escaladé N2",user:"Étudiant A",time:"07:45"},
+    {action:"Compte utilisateur modifié",user:"Admin",time:"07:30"},
+    {action:"SLA P1 mis à jour",user:"Admin",time:"Hier 17:00"}
+  ];
+  let auditHTML = audits.map(a=>`<div class="audit-row"><div><div class="audit-action">${a.action}</div><div class="audit-user">${a.user}</div></div><span class="audit-time">${a.time}</span></div>`).join("");
+
+  return `<div class="page-header"><h1>Administration</h1><p>Configuration du système GID</p></div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Catégories & Sous-catégories</div>${catHTML}</div>
+      <div class="card"><div class="card-title">Comptes utilisateurs</div>${usersHTML}<button class="btn-small" style="margin-top:14px;color:var(--indigo)">+ Nouveau compte</button></div>
+      <div class="card"><div class="card-title">Configuration SLA</div><table class="sla-table"><thead><tr><th>Priorité</th><th>Prise en charge</th><th>Résolution N1</th></tr></thead><tbody>${slaRows}</tbody></table></div>
+      <div class="card"><div class="card-title">Historique d'audit</div>${auditHTML}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+initLogin();
+</script>
+</body>
+</html>
