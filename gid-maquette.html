@@ -368,7 +368,10 @@ const TICKETS = [
   {id:"RFC-2026-0012",titre:"Évolution — Ajout module RH dans ERP",type:"evolution",domaine:"applicatif",priorite:"P3",statut:"en_attente",demandeur:"Pierre Moreau",traitant:"Technicien B",date:"20/03/2026 10:00",sla_pct:45,app:"ERP — SAP",impact:"Moyen",desc:"Demande d'ajout d'un module de gestion des congés dans l'ERP pour le service RH.",commentaires:5},
   {id:"INC-2026-0144",titre:"Switch SRV-SW-02 — ports désactivés",type:"incident",domaine:"reseau",priorite:"P2",statut:"resolu",demandeur:"Claire Fontaine",traitant:"Technicien A",date:"24/03/2026 11:00",sla_pct:100,app:"Switch Cisco 3850",impact:"Élevé",desc:"Plusieurs ports du switch SRV-SW-02 en salle serveur sont passés en état err-disabled.",commentaires:3},
   {id:"DEM-2026-0088",titre:"Demande accès VPN télétravail",type:"assistance",domaine:"reseau",priorite:"P4",statut:"cloture",demandeur:"Lucie Bernard",traitant:"Technicien B",date:"22/03/2026 09:15",sla_pct:100,app:"VPN — FortiClient",impact:"Faible",desc:"Demande de création d'un accès VPN pour le télétravail.",commentaires:2},
-  {id:"INC-2026-0143",titre:"Serveur backup — échec sauvegarde nocturne",type:"incident",domaine:"systeme",priorite:"P2",statut:"en_cours",demandeur:"Thomas Girard",traitant:"Technicien A",date:"25/03/2026 07:00",sla_pct:60,app:"Serveur bkp-srv-01",impact:"Élevé",desc:"La sauvegarde nocturne du 24/03 a échoué avec l'erreur 'insufficient disk space'.",commentaires:4}
+  {id:"INC-2026-0143",titre:"Serveur backup — échec sauvegarde nocturne",type:"incident",domaine:"systeme",priorite:"P2",statut:"en_cours",demandeur:"Thomas Girard",traitant:"Technicien A",date:"25/03/2026 07:00",sla_pct:60,app:"Serveur bkp-srv-01",impact:"Élevé",desc:"La sauvegarde nocturne du 24/03 a échoué avec l'erreur 'insufficient disk space'.",commentaires:4},
+  {id:"DEM-2026-0085",titre:"Accès module facturation ERP",type:"assistance",domaine:"applicatif",priorite:"P3",statut:"resolu",demandeur:"Marie Dupont",traitant:"Technicien A",date:"18/03/2026 10:15",sla_pct:100,app:"ERP — SAP",impact:"Moyen",desc:"Demande d'accès au module de facturation pour pouvoir éditer les factures fournisseurs.",commentaires:3},
+  {id:"INC-2026-0130",titre:"Imprimante 3ème étage hors service",type:"incident",domaine:"systeme",priorite:"P4",statut:"cloture",demandeur:"Marie Dupont",traitant:"Technicien B",date:"10/03/2026 14:30",sla_pct:100,app:"Imprimante HP-3E",impact:"Faible",desc:"L'imprimante réseau du 3ème étage ne répond plus. Le voyant orange clignote.",commentaires:2},
+  {id:"RFC-2026-0008",titre:"Ajout champ N° bon de commande dans ERP",type:"evolution",domaine:"applicatif",priorite:"P3",statut:"en_attente",demandeur:"Marie Dupont",traitant:"Technicien B",date:"05/03/2026 09:00",sla_pct:30,app:"ERP — SAP",impact:"Moyen",desc:"Besoin d'ajouter un champ numéro de bon de commande dans le formulaire de saisie des factures.",commentaires:4}
 ];
 const KB_ARTICLES = [
   {id:1,titre:"Résoudre l'erreur 503 sur l'ERP",domaine:"applicatif",votes:24,date:"15/02/2026"},
@@ -561,6 +564,96 @@ function renderPage(){
 // DASHBOARD
 // ═══════════════════════════════════════
 function pageDashboard(){
+  // ── UTILISATEUR: show only own tickets ──
+  if(currentRole === "Utilisateur" && loggedInUser){
+    const userName = loggedInUser.nom.split("(")[0].trim();
+    const myTickets = TICKETS.filter(t => t.demandeur === userName);
+    const myOpen = myTickets.filter(t => !["cloture","resolu"].includes(t.statut));
+    const myResolved = myTickets.filter(t => t.statut === "resolu");
+    const myClosed = myTickets.filter(t => t.statut === "cloture");
+
+    const statusSteps = ["nouveau","assigne","en_cours","en_attente","resolu","cloture"];
+
+    let ticketCards = "";
+    if(myTickets.length === 0){
+      ticketCards = `<div style="text-align:center;padding:60px 20px;color:var(--slate-400)">
+        <div style="font-size:48px;margin-bottom:16px">📭</div>
+        <div style="font-size:16px;font-weight:600;color:var(--slate-600);margin-bottom:8px">Aucun ticket pour le moment</div>
+        <div style="font-size:13px;margin-bottom:24px">Vous n'avez pas encore soumis de demande.</div>
+        <button class="btn-primary" onclick="navigate('creer')">＋ Créer mon premier ticket</button>
+      </div>`;
+    } else {
+      myTickets.forEach(t => {
+        const s = STATUSES[t.statut];
+        const p = PRIORITIES[t.priorite];
+        const d = DOMAINS[t.domaine];
+        const currentStep = statusSteps.indexOf(t.statut);
+
+        // Progress steps
+        const stepsToShow = ["nouveau","assigne","en_cours","resolu","cloture"];
+        let stepsHTML = stepsToShow.map((step,i) => {
+          const stepS = STATUSES[step];
+          const stepIdx = statusSteps.indexOf(step);
+          const isCurrent = t.statut === step;
+          const isDone = currentStep > stepIdx || (t.statut==="en_attente" && stepIdx < statusSteps.indexOf("en_attente"));
+          const dotBg = isCurrent ? s.color : isDone ? "#10b981" : "#e5e7eb";
+          const dotIcon = isDone ? "✓" : "";
+          const labelColor = isCurrent ? s.color : isDone ? "#10b981" : "#94a3b8";
+          const labelWeight = isCurrent ? "700" : "500";
+          const lineColor = isDone ? "#10b981" : "#e5e7eb";
+          return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative">
+            ${i>0?`<div style="position:absolute;top:11px;right:50%;width:100%;height:3px;background:${lineColor};z-index:0"></div>`:""}
+            <div style="width:24px;height:24px;border-radius:50%;background:${dotBg};display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;z-index:1;border:${isCurrent?"3px solid "+s.color+"40":"none"};box-sizing:content-box">${dotIcon}</div>
+            <span style="font-size:10px;color:${labelColor};font-weight:${labelWeight};margin-top:6px;text-align:center">${stepS.label}</span>
+          </div>`;
+        }).join("");
+
+        // En attente badge
+        const waitBadge = t.statut==="en_attente" ? `<div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#f5f3ff;border:1px solid #e9d5ff;font-size:11.5px;color:#7c3aed;font-weight:600">⏸ En attente d'information de votre part — veuillez répondre au technicien</div>` : "";
+
+        // Resolved: validation buttons
+        const validationBtns = t.statut==="resolu" ? `<div style="margin-top:10px;padding:12px 14px;border-radius:10px;background:#ecfdf5;border:1px solid #a7f3d0;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12.5px;font-weight:600;color:#065f46">✓ Solution proposée — Validez-vous la résolution ?</span>
+          <div style="display:flex;gap:8px">
+            <button style="padding:6px 16px;border-radius:8px;border:none;background:#10b981;color:#fff;font-size:12px;font-weight:700;cursor:pointer">Valider</button>
+            <button style="padding:6px 16px;border-radius:8px;border:1px solid #fecaca;background:#fff;color:#ef4444;font-size:12px;font-weight:700;cursor:pointer">Refuser</button>
+          </div>
+        </div>` : "";
+
+        ticketCards += `<div class="card" style="margin-bottom:14px;cursor:pointer;transition:box-shadow .15s" onclick="openTicket('${t.id}')" onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'" onmouseleave="this.style.boxShadow='none'">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--indigo);background:var(--indigo-light);padding:4px 10px;border-radius:6px">${t.id}</span>
+              ${badge(s.label,s.color,s.bg)}
+              ${badge(p.label,p.color,p.bg)}
+              <span style="font-size:12px;color:${d.color};font-weight:600">${d.icon} ${d.label}</span>
+            </div>
+            <span style="font-size:11.5px;color:var(--slate-400);white-space:nowrap">${t.date}</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;color:var(--slate-900);margin-bottom:6px">${esc(t.titre)}</div>
+          <div style="font-size:12.5px;color:var(--slate-500);margin-bottom:16px">${t.traitant ? "Traité par <strong>"+esc(t.traitant)+"</strong>" : "En attente d'affectation"} · ${t.commentaires} commentaire${t.commentaires>1?"s":""}</div>
+          <div style="display:flex;align-items:center;padding:12px 8px;background:var(--slate-50);border-radius:10px;overflow:hidden">${stepsHTML}</div>
+          ${waitBadge}
+          ${validationBtns}
+        </div>`;
+      });
+    }
+
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
+        <div><h1 style="font-size:26px;font-weight:800;color:var(--slate-900);letter-spacing:-0.03em">Mes tickets</h1><p style="color:var(--slate-500);font-size:13.5px;margin-top:4px;font-weight:500">Bienvenue ${esc(userName)} — suivez l'avancement de vos demandes</p></div>
+        <button class="btn-primary" onclick="navigate('creer')">＋ Nouveau ticket</button>
+      </div>
+      <div class="stats-row" style="margin-bottom:24px">
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">En cours</div><div class="stat-value">${myOpen.length}</div></div><div class="stat-icon" style="background:rgba(99,102,241,0.1)">🎫</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Résolus</div><div class="stat-value">${myResolved.length}</div></div><div class="stat-icon" style="background:rgba(16,185,129,0.1)">✓</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Clôturés</div><div class="stat-value">${myClosed.length}</div></div><div class="stat-icon" style="background:rgba(107,114,128,0.1)">📁</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Total</div><div class="stat-value">${myTickets.length}</div></div><div class="stat-icon" style="background:rgba(245,158,11,0.1)">📊</div></div></div>
+      </div>
+      ${ticketCards}`;
+  }
+
+  // ── OTHER ROLES: standard dashboard ──
   const open = TICKETS.filter(t=>!["cloture","resolu"].includes(t.statut));
   const slaRisk = TICKETS.filter(t=>t.sla_pct>75&&t.statut!=="cloture");
   const critical = TICKETS.filter(t=>t.priorite==="P1"&&t.statut!=="cloture");
@@ -598,7 +691,7 @@ function pageDashboard(){
       <div class="card"><div class="card-title">Répartition par domaine</div>${domainBars}</div>
       <div class="card"><div class="card-title">Répartition par priorité</div>${prioRows}</div>
     </div>
-    <div class="card"><div class="card-title">Tickets critiques & SLA à risque</div>${alertRows}</div>`;
+    ${currentRole==="Superviseur"||currentRole==="Admin" ? `<div class="card"><div class="card-title">Tickets critiques & SLA à risque</div>${alertRows}</div>` : ""}`;
 }
 
 // ═══════════════════════════════════════
@@ -691,10 +784,10 @@ function pageDetail(){
     ["Impact",t.impact],["Créé le",t.date],["SLA résolution",p.sla]
   ].map(([l,v])=>`<div class="detail-info-row"><span class="detail-info-label">${l}</span><span class="detail-info-value">${esc(v)}</span></div>`).join("");
 
-  const backTarget = currentRole==="Utilisateur"?"tickets":"file";
+  const backTarget = currentRole==="Utilisateur"?"dashboard":"file";
 
   return `
-    <button class="btn-back" onclick="navigate('${backTarget}')">← Retour à la liste</button>
+    <button class="btn-back" onclick="navigate('${backTarget}')">← ${currentRole==="Utilisateur"?"Retour à mes tickets":"Retour à la liste"}</button>
     <div class="detail-layout">
       <div class="detail-main">
         <div class="card" style="padding:28px;margin-bottom:20px">
@@ -720,9 +813,15 @@ function pageDetail(){
         <div class="detail-info"><h4>Détails</h4>${infoRows}</div>
         <div class="detail-info"><h4>SLA</h4>${slaBar(t.sla_pct,t.priorite)}<div style="font-size:11px;color:var(--slate-400);margin-top:8px">Délai maximal : ${p.sla}</div></div>
         <div class="detail-actions">
-          <button class="btn-success">✓ Marquer résolu</button>
-          <button class="btn-warn">↗ Escalader N2/N3</button>
-          <button class="btn-ghost">⏸ Mettre en attente</button>
+          ${currentRole==="Utilisateur" ? `
+            ${t.statut==="resolu" ? `<button class="btn-success">✓ Valider la résolution</button><button style="padding:10px 16px;border-radius:var(--radius-sm);border:1px solid #fecaca;background:#fff;color:#ef4444;font-size:12.5px;font-weight:700;cursor:pointer;width:100%">✕ Refuser la résolution</button>` : ""}
+            ${t.statut==="cloture" ? `<button class="btn-warn">↩ Réouvrir le ticket</button>` : ""}
+            ${t.statut==="en_attente" ? `<button class="btn-primary" style="width:100%;justify-content:center">💬 Répondre au technicien</button>` : ""}
+          ` : `
+            <button class="btn-success">✓ Marquer résolu</button>
+            <button class="btn-warn">↗ Escalader N2/N3</button>
+            <button class="btn-ghost">⏸ Mettre en attente</button>
+          `}
         </div>
       </div>
     </div>`;
