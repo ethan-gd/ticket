@@ -361,14 +361,14 @@ const DOMAINS = {
   systeme:{label:"Système",icon:"🖥️",color:"#f59e0b"}
 };
 const TICKETS = [
-  {id:"INC-2026-0147",titre:"ERP inaccessible — erreur 503",type:"incident",domaine:"applicatif",priorite:"P1",statut:"en_cours",demandeur:"Marie Dupont",traitant:"Étudiant A",date:"26/03/2026 08:12",sla_pct:72,app:"ERP — SAP",impact:"Critique",desc:"L'application ERP renvoie une erreur 503 depuis ce matin. Aucun utilisateur du service comptabilité ne peut accéder au module facturation.",commentaires:4},
-  {id:"INC-2026-0146",titre:"VPN déconnexion aléatoire site Lyon",type:"incident",domaine:"reseau",priorite:"P2",statut:"assigne",demandeur:"Jean Martin",traitant:"Étudiant B",date:"25/03/2026 16:45",sla_pct:35,app:"VPN — FortiClient",impact:"Élevé",desc:"Déconnexions VPN récurrentes pour les utilisateurs du site de Lyon. Affecte environ 30 personnes.",commentaires:2},
-  {id:"INC-2026-0145",titre:"VM prod-web-03 — CPU à 98%",type:"incident",domaine:"systeme",priorite:"P1",statut:"en_cours",demandeur:"Alain Roche",traitant:"Étudiant A",date:"25/03/2026 14:20",sla_pct:88,app:"Serveur prod-web-03",impact:"Critique",desc:"Le serveur virtuel prod-web-03 affiche une charge CPU constante à 98%. Les services web hébergés sont extrêmement lents.",commentaires:7},
+  {id:"INC-2026-0147",titre:"ERP inaccessible — erreur 503",type:"incident",domaine:"applicatif",priorite:"P1",statut:"en_cours",demandeur:"Marie Dupont",traitant:"Technicien A",date:"26/03/2026 08:12",sla_pct:72,app:"ERP — SAP",impact:"Critique",desc:"L'application ERP renvoie une erreur 503 depuis ce matin. Aucun utilisateur du service comptabilité ne peut accéder au module facturation.",commentaires:4},
+  {id:"INC-2026-0146",titre:"VPN déconnexion aléatoire site Lyon",type:"incident",domaine:"reseau",priorite:"P2",statut:"assigne",demandeur:"Jean Martin",traitant:"Technicien B",date:"25/03/2026 16:45",sla_pct:35,app:"VPN — FortiClient",impact:"Élevé",desc:"Déconnexions VPN récurrentes pour les utilisateurs du site de Lyon. Affecte environ 30 personnes.",commentaires:2},
+  {id:"INC-2026-0145",titre:"VM prod-web-03 — CPU à 98%",type:"incident",domaine:"systeme",priorite:"P1",statut:"en_cours",demandeur:"Alain Roche",traitant:"Technicien A",date:"25/03/2026 14:20",sla_pct:88,app:"Serveur prod-web-03",impact:"Critique",desc:"Le serveur virtuel prod-web-03 affiche une charge CPU constante à 98%. Les services web hébergés sont extrêmement lents.",commentaires:7},
   {id:"DEM-2026-0089",titre:"Aide configuration Outlook mobile",type:"assistance",domaine:"applicatif",priorite:"P4",statut:"nouveau",demandeur:"Sophie Lemaire",traitant:null,date:"26/03/2026 09:30",sla_pct:10,app:"Outlook — O365",impact:"Faible",desc:"Besoin d'aide pour configurer la messagerie Outlook sur un nouveau téléphone professionnel.",commentaires:0},
-  {id:"RFC-2026-0012",titre:"Évolution — Ajout module RH dans ERP",type:"evolution",domaine:"applicatif",priorite:"P3",statut:"en_attente",demandeur:"Pierre Moreau",traitant:"Étudiant B",date:"20/03/2026 10:00",sla_pct:45,app:"ERP — SAP",impact:"Moyen",desc:"Demande d'ajout d'un module de gestion des congés dans l'ERP pour le service RH.",commentaires:5},
-  {id:"INC-2026-0144",titre:"Switch SRV-SW-02 — ports désactivés",type:"incident",domaine:"reseau",priorite:"P2",statut:"resolu",demandeur:"Claire Fontaine",traitant:"Étudiant A",date:"24/03/2026 11:00",sla_pct:100,app:"Switch Cisco 3850",impact:"Élevé",desc:"Plusieurs ports du switch SRV-SW-02 en salle serveur sont passés en état err-disabled.",commentaires:3},
-  {id:"DEM-2026-0088",titre:"Demande accès VPN télétravail",type:"assistance",domaine:"reseau",priorite:"P4",statut:"cloture",demandeur:"Lucie Bernard",traitant:"Étudiant B",date:"22/03/2026 09:15",sla_pct:100,app:"VPN — FortiClient",impact:"Faible",desc:"Demande de création d'un accès VPN pour le télétravail.",commentaires:2},
-  {id:"INC-2026-0143",titre:"Serveur backup — échec sauvegarde nocturne",type:"incident",domaine:"systeme",priorite:"P2",statut:"en_cours",demandeur:"Thomas Girard",traitant:"Étudiant A",date:"25/03/2026 07:00",sla_pct:60,app:"Serveur bkp-srv-01",impact:"Élevé",desc:"La sauvegarde nocturne du 24/03 a échoué avec l'erreur 'insufficient disk space'.",commentaires:4}
+  {id:"RFC-2026-0012",titre:"Évolution — Ajout module RH dans ERP",type:"evolution",domaine:"applicatif",priorite:"P3",statut:"en_attente",demandeur:"Pierre Moreau",traitant:"Technicien B",date:"20/03/2026 10:00",sla_pct:45,app:"ERP — SAP",impact:"Moyen",desc:"Demande d'ajout d'un module de gestion des congés dans l'ERP pour le service RH.",commentaires:5},
+  {id:"INC-2026-0144",titre:"Switch SRV-SW-02 — ports désactivés",type:"incident",domaine:"reseau",priorite:"P2",statut:"resolu",demandeur:"Claire Fontaine",traitant:"Technicien A",date:"24/03/2026 11:00",sla_pct:100,app:"Switch Cisco 3850",impact:"Élevé",desc:"Plusieurs ports du switch SRV-SW-02 en salle serveur sont passés en état err-disabled.",commentaires:3},
+  {id:"DEM-2026-0088",titre:"Demande accès VPN télétravail",type:"assistance",domaine:"reseau",priorite:"P4",statut:"cloture",demandeur:"Lucie Bernard",traitant:"Technicien B",date:"22/03/2026 09:15",sla_pct:100,app:"VPN — FortiClient",impact:"Faible",desc:"Demande de création d'un accès VPN pour le télétravail.",commentaires:2},
+  {id:"INC-2026-0143",titre:"Serveur backup — échec sauvegarde nocturne",type:"incident",domaine:"systeme",priorite:"P2",statut:"en_cours",demandeur:"Thomas Girard",traitant:"Technicien A",date:"25/03/2026 07:00",sla_pct:60,app:"Serveur bkp-srv-01",impact:"Élevé",desc:"La sauvegarde nocturne du 24/03 a échoué avec l'erreur 'insufficient disk space'.",commentaires:4}
 ];
 const KB_ARTICLES = [
   {id:1,titre:"Résoudre l'erreur 503 sur l'ERP",domaine:"applicatif",votes:24,date:"15/02/2026"},
@@ -383,8 +383,8 @@ const KB_ARTICLES = [
 // ═══════════════════════════════════════
 const USERS = [
   { id:"mdupont", login:"marie.dupont", password:"user123", nom:"Marie Dupont", initiale:"MD", role:"Utilisateur", service:"Comptabilité", gradient:"linear-gradient(135deg,#f59e0b,#ef4444)" },
-  { id:"etudA", login:"etudiant.a", password:"tech123", nom:"Étudiant A (Ethan)", initiale:"EA", role:"Technicien N1", service:"Support DSI — SLAM", gradient:"linear-gradient(135deg,#6366f1,#ec4899)" },
-  { id:"etudB", login:"etudiant.b", password:"tech123", nom:"Étudiant B (Jules)", initiale:"EB", role:"Technicien N1", service:"Support DSI — SISR", gradient:"linear-gradient(135deg,#06b6d4,#6366f1)" },
+  { id:"techA", login:"technicien.a", password:"tech123", nom:"Technicien A (Ethan)", initiale:"TA", role:"Technicien N1", service:"Support DSI — SLAM", gradient:"linear-gradient(135deg,#6366f1,#ec4899)" },
+  { id:"techB", login:"technicien.b", password:"tech123", nom:"Technicien B (Jules)", initiale:"TB", role:"Technicien N1", service:"Support DSI — SISR", gradient:"linear-gradient(135deg,#06b6d4,#6366f1)" },
   { id:"jsuper", login:"jean.superviseur", password:"super123", nom:"Jean Coordinateur", initiale:"JC", role:"Superviseur", service:"Coordination DSI", gradient:"linear-gradient(135deg,#10b981,#06b6d4)" },
   { id:"admin", login:"admin", password:"admin123", nom:"Admin Système", initiale:"AS", role:"Admin", service:"Administration DSI", gradient:"linear-gradient(135deg,#8b5cf6,#ec4899)" }
 ];
@@ -416,7 +416,6 @@ const NAV_CONFIG = {
   "Utilisateur":[
     {id:"dashboard",label:"Tableau de bord",icon:"◩"},
     {id:"creer",label:"Nouveau ticket",icon:"＋"},
-    {id:"tickets",label:"Mes tickets",icon:"☰"},
     {id:"kb",label:"Base de connaissances",icon:"📖"}
   ],
   "Technicien N1":[
@@ -514,7 +513,7 @@ function logout(){
 function initLogin(){
   // Demo account buttons
   const grid = document.getElementById("demoAccounts");
-  grid.innerHTML = USERS.filter(u=>u.id!=="etudB").map(u=>`
+  grid.innerHTML = USERS.filter(u=>u.id!=="techB").map(u=>`
     <button class="login-account-btn" onclick="quickLogin('${u.id}')">
       <div class="login-account-avatar" style="background:${u.gradient}">${u.initiale}</div>
       <div><div class="login-account-name">${u.nom.split("(")[0].trim()}</div><div class="login-account-role">${u.role} · ${u.login}</div></div>
@@ -874,7 +873,7 @@ function pageAdmin(){
   ];
   let catHTML = cats.map(c=>`<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--slate-700);margin-bottom:6px">${c.nom}</div><div class="admin-tags">${c.subs.map(s=>`<span class="admin-tag">${s}</span>`).join("")}<span class="admin-tag-add">+ Ajouter</span></div></div>`).join("");
 
-  const users = [{nom:"Marie Dupont",role:"Utilisateur"},{nom:"Étudiant A",role:"Technicien N1"},{nom:"Étudiant B",role:"Technicien N1"},{nom:"Jean Superviseur",role:"Superviseur"},{nom:"Admin Système",role:"Admin"}];
+  const users = [{nom:"Marie Dupont",role:"Utilisateur"},{nom:"Technicien A",role:"Technicien N1"},{nom:"Technicien B",role:"Technicien N1"},{nom:"Jean Superviseur",role:"Superviseur"},{nom:"Admin Système",role:"Admin"}];
   let usersHTML = users.map(u=>`<div class="admin-user-row"><div><div class="admin-user-name">${u.nom}</div><div class="admin-user-role">${u.role}</div></div><div class="admin-dot" style="background:#10b981"></div></div>`).join("");
 
   const slaRows = Object.entries(PRIORITIES).map(([k,p])=>{
@@ -884,7 +883,7 @@ function pageAdmin(){
 
   const audits = [
     {action:"Ticket INC-0147 créé",user:"Marie Dupont",time:"08:12"},
-    {action:"Ticket INC-0145 escaladé N2",user:"Étudiant A",time:"07:45"},
+    {action:"Ticket INC-0145 escaladé N2",user:"Technicien A",time:"07:45"},
     {action:"Compte utilisateur modifié",user:"Admin",time:"07:30"},
     {action:"SLA P1 mis à jour",user:"Admin",time:"Hier 17:00"}
   ];
